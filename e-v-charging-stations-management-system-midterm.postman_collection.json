@@ -1,0 +1,213 @@
+{
+  "info": {
+    "name": "EV Charging Stations Management System - Midterm",
+    "description": "Full test suite for the AUCA EV Charging assignment. Run folders in order: A2 first, then D3, D4, B, C, D1, D2, E, F, Bonus. Request test scripts save generated IDs to collection variables so subsequent requests chain automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" }
+  ],
+  "item": [
+    {
+      "name": "A2 - Seed data (run first, in order)",
+      "item": [
+        {
+          "name": "A2.1 Create connector type CCS",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('ctCcs', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"CCS\"}" },
+            "url": "{{baseUrl}}/connector-types/save"
+          }
+        },
+        {
+          "name": "A2.1 Create connector type Type2",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('ctType2', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"Type2\"}" },
+            "url": "{{baseUrl}}/connector-types/save"
+          }
+        },
+        {
+          "name": "A2.2 Create bay 1",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('bay1', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"bayNumber\":1,\"name\":\"North Bay\"}" },
+            "url": "{{baseUrl}}/bays/save"
+          }
+        },
+        {
+          "name": "A2.2 Create bay 2",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('bay2', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"bayNumber\":2,\"name\":\"South Bay\"}" },
+            "url": "{{baseUrl}}/bays/save"
+          }
+        },
+        {
+          "name": "A2.3 Create charging point CP-001",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('cp1', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"code\":\"CP-001\",\"brand\":\"ABB\",\"powerKw\":50,\"bay\":{\"id\":\"{{bay1}}\"}}" },
+            "url": "{{baseUrl}}/charging-points/save"
+          }
+        },
+        {
+          "name": "A2.4 Create driver Alice",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('driverAlice', pm.response.json().id);"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"firstName\":\"Alice\",\"lastName\":\"Mukamana\",\"plateNumber\":\"RAB123A\",\"email\":\"alice@example.com\",\"phone\":\"0788000001\"}" },
+            "url": "{{baseUrl}}/drivers/save"
+          }
+        }
+      ]
+    },
+    {
+      "name": "D3 - Attach connector types",
+      "item": [
+        { "name": "D3 Attach CCS to CP-001", "request": { "method": "PUT", "url": "{{baseUrl}}/charging-points/{{cp1}}/connector-types/{{ctCcs}}" } },
+        { "name": "D3 Attach Type2 to CP-001", "request": { "method": "PUT", "url": "{{baseUrl}}/charging-points/{{cp1}}/connector-types/{{ctType2}}" } },
+        { "name": "D3 Duplicate attach (409)", "event": [{ "listen": "test", "script": { "exec": [
+          "pm.test('409 Conflict', () => pm.response.to.have.status(409));"
+        ] } }], "request": { "method": "PUT", "url": "{{baseUrl}}/charging-points/{{cp1}}/connector-types/{{ctCcs}}" } }
+      ]
+    },
+    {
+      "name": "B1 - Drivers by last name",
+      "item": [
+        { "name": "B1 lower 'mukamana'", "request": { "method": "GET", "url": "{{baseUrl}}/drivers/by-last-name?lastName=mukamana" } },
+        { "name": "B1 upper 'MUKAMANA'", "request": { "method": "GET", "url": "{{baseUrl}}/drivers/by-last-name?lastName=MUKAMANA" } }
+      ]
+    },
+    {
+      "name": "C1-C4 - Query requirements",
+      "item": [
+        { "name": "C1 Charging points by 'ccs'", "request": { "method": "GET", "url": "{{baseUrl}}/charging-points/by-connector-type?name=ccs" } },
+        { "name": "C2 Free bays", "request": { "method": "GET", "url": "{{baseUrl}}/bays/free" } },
+        { "name": "C3 Unused connector types", "request": { "method": "GET", "url": "{{baseUrl}}/connector-types/unused" } },
+        { "name": "C4 Drivers of CP-001", "request": { "method": "GET", "url": "{{baseUrl}}/drivers/of-charging-point/{{cp1}}" } }
+      ]
+    },
+    {
+      "name": "D1 - Session save rules",
+      "item": [
+        {
+          "name": "D1 Create session (success)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('201 Created', () => pm.response.to.have.status(201));"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"sessionDate\":\"2026-11-15\",\"vehicleModel\":\"Tesla Model 3\",\"driver\":{\"id\":\"{{driverAlice}}\"},\"chargingPoint\":{\"id\":\"{{cp1}}\"}}" },
+            "url": "{{baseUrl}}/charging-sessions/save"
+          }
+        },
+        {
+          "name": "D1 Catch session id",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const s = pm.response.json().find(x => x.sessionDate === '2026-11-15');",
+            "if (s) pm.collectionVariables.set('sess1', s.id);"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/charging-sessions/all" }
+        },
+        {
+          "name": "D1 Past date (400)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('400', () => pm.response.to.have.status(400));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"sessionDate\":\"2020-01-01\",\"vehicleModel\":\"X\",\"driver\":{\"id\":\"{{driverAlice}}\"},\"chargingPoint\":{\"id\":\"{{cp1}}\"}}" },
+            "url": "{{baseUrl}}/charging-sessions/save"
+          }
+        },
+        {
+          "name": "D1 Double book (409)",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('409', () => pm.response.to.have.status(409));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"sessionDate\":\"2026-11-15\",\"vehicleModel\":\"Y\",\"driver\":{\"id\":\"{{driverAlice}}\"},\"chargingPoint\":{\"id\":\"{{cp1}}\"}}" },
+            "url": "{{baseUrl}}/charging-sessions/save"
+          }
+        }
+      ]
+    },
+    {
+      "name": "B2-B3 - Status and date range",
+      "item": [
+        { "name": "B2 By status RESERVED", "request": { "method": "GET", "url": "{{baseUrl}}/charging-sessions/by-status?status=RESERVED" } },
+        { "name": "B3 Between Nov", "request": { "method": "GET", "url": "{{baseUrl}}/charging-sessions/between?start=2026-11-01&end=2026-11-30" } }
+      ]
+    },
+    {
+      "name": "D2 - Status flow",
+      "item": [
+        { "name": "D2 RESERVED -> CHARGING", "request": { "method": "PATCH", "url": "{{baseUrl}}/charging-sessions/{{sess1}}/status?status=CHARGING" } },
+        { "name": "D2 CHARGING -> RESERVED (400)", "event": [{ "listen": "test", "script": { "exec": ["pm.test('400', () => pm.response.to.have.status(400));"] } }], "request": { "method": "PATCH", "url": "{{baseUrl}}/charging-sessions/{{sess1}}/status?status=RESERVED" } },
+        { "name": "D2 CHARGING -> FINISHED", "request": { "method": "PATCH", "url": "{{baseUrl}}/charging-sessions/{{sess1}}/status?status=FINISHED" } },
+        { "name": "D2 FINISHED -> CANCELLED (400)", "event": [{ "listen": "test", "script": { "exec": ["pm.test('400', () => pm.response.to.have.status(400));"] } }], "request": { "method": "PATCH", "url": "{{baseUrl}}/charging-sessions/{{sess1}}/status?status=CANCELLED" } }
+      ]
+    },
+    {
+      "name": "E1-E3 - Receipts",
+      "item": [
+        {
+          "name": "E1 Receipt on FINISHED",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"tariffName\":\"Peak\",\"remarks\":\"Good\",\"energyKwh\":42}" },
+            "url": "{{baseUrl}}/charge-receipts/save?chargingSessionId={{sess1}}"
+          }
+        },
+        { "name": "E2 Receipts for driver RAB123A", "request": { "method": "GET", "url": "{{baseUrl}}/charge-receipts/driver/RAB123A" } },
+        { "name": "E3 Delete protected session (409)", "event": [{ "listen": "test", "script": { "exec": ["pm.test('409', () => pm.response.to.have.status(409));"] } }], "request": { "method": "DELETE", "url": "{{baseUrl}}/charging-sessions/delete/{{sess1}}" } }
+      ]
+    },
+    {
+      "name": "F1-F2 - Stats and bulk",
+      "item": [
+        { "name": "F1 Sessions per status", "request": { "method": "GET", "url": "{{baseUrl}}/charging-sessions/stats/by-status" } },
+        { "name": "F2 Cancel day", "request": { "method": "PATCH", "url": "{{baseUrl}}/charging-sessions/cancel-day?chargingPointId={{cp1}}&date=2026-11-15" } }
+      ]
+    },
+    {
+      "name": "Bonus",
+      "item": [
+        { "name": "Dashboard summary", "request": { "method": "GET", "url": "{{baseUrl}}/dashboard/summary" } },
+        { "name": "Pagination", "request": { "method": "GET", "url": "{{baseUrl}}/charging-sessions/page?page=0&size=5&sort=sessionDate,asc" } }
+      ]
+    }
+  ]
+}
